@@ -1,0 +1,82 @@
+name: Deploy Python functions to AWS Lambda
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'lambda/get_all_inventory_items/lambda_function.py'
+      - 'lambda/create_item/lambda_function.py'
+      - 'lambda/delete_item/lambda_function.py'
+      - 'lambda/update_item/lambda_function.py'
+      - 'lambda/get_item_by_id/lambda_function.py'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      # Deploy get_all_inventory_items
+      - name: Zip get_all_inventory_items
+        run: zip function.zip lambda_function.py
+        working-directory: ./lambda/get_all_inventory_items
+      - name: Deploy get_all_inventory_items
+        run: aws lambda update-function-code --function-name get_all_inventory_items --zip-file fileb://function.zip --publish
+        working-directory: ./lambda/get_all_inventory_items
+      - name: Cleanup get_all_inventory_items
+        run: rm function.zip
+        working-directory: ./lambda/get_all_inventory_items
+
+      # Deploy create_item
+      - name: Zip create_item
+        run: zip function.zip lambda_function.py
+        working-directory: ./lambda/create_item
+      - name: Deploy create_item
+        run: aws lambda update-function-code --function-name create_item --zip-file fileb://function.zip --publish
+        working-directory: ./lambda/create_item
+      - name: Cleanup create_item
+        run: rm function.zip
+        working-directory: ./lambda/create_item
+
+      # Deploy delete_item
+      - name: Zip delete_item
+        run: zip function.zip lambda_function.py
+        working-directory: ./lambda/delete_item
+      - name: Deploy delete_item
+        run: aws lambda update-function-code --function-name delete_item --zip-file fileb://function.zip --publish
+        working-directory: ./lambda/delete_item
+      - name: Cleanup delete_item
+        run: rm function.zip
+        working-directory: ./lambda/delete_item
+
+      # Deploy update_item
+      - name: Zip update_item
+        run: zip function.zip lambda_function.py
+        working-directory: ./lambda/update_item
+      - name: Deploy update_item
+        run: aws lambda update-function-code --function-name update_item --zip-file fileb://function.zip --publish
+        working-directory: ./lambda/update_item
+      - name: Cleanup update_item
+        run: rm function.zip
+        working-directory: ./lambda/update_item
+
+      # Deploy get_item_by_id
+      - name: Zip get_item_by_id
+        run: zip function.zip lambda_function.py
+        working-directory: ./lambda/get_item_by_id
+      - name: Deploy get_item_by_id
+        run: aws lambda update-function-code --function-name get_item_by_id --zip-file fileb://function.zip --publish
+        working-directory: ./lambda/get_item_by_id
+      - name: Cleanup get_item_by_id
+        run: rm function.zip
+        working-directory: ./lambda/get_item_by_id
