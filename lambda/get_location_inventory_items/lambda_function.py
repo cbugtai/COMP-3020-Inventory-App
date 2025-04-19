@@ -1,33 +1,35 @@
-import simplejson as json
 import boto3
-from boto3.dynamodb.conditions import Key
-from botocore.exceptions import ClientError
+import json
 
-#This code is from github
+# Updated Function, now tested and confirmed works
 
-# Initialize the DynamoDB client
 dynamodb = boto3.resource('dynamodb')
-
-# Define the DynamoDB table name
-TABLE_NAME = 'Inventory'
+table = dynamodb.Table('Inventory')
 
 def lambda_handler(event, context):
-    table = dynamodb.Table(TABLE_NAME)
+    path_params = event.get('pathParameters') or {}
+    location_id = path_params.get('id')
 
-    try:
-        # Query to get all items with PK = "location_id"
-        response = table.query(
-            KeyConditionExpression=Key('PK').eq('location_id')
-        )
-        items = response.get('Items', [])
-    except ClientError as e:
-        print(f"Failed to query items: {e.response['Error']['Message']}")
+    if not location_id:
         return {
-            'statusCode': 500,
-            'body': json.dumps('Failed to query items')
+            'statusCode': 400,
+            'body': json.dumps("Missing 'location_id' path parameter")
         }
 
-    return {
-        'statusCode': 200,
-        'body': json.dumps(items)
-    }
+    try:
+        response = table.query(
+            IndexName='GSI',
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('location_id').eq(int(location_id))
+        )
+        items = response.get('Items', [])
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps(items, default=str)
+        }
+
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps(f"Error retrieving items: {str(e)}")
+        }

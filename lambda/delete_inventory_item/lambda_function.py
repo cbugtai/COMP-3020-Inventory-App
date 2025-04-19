@@ -1,34 +1,48 @@
+import simplejson as json
 import boto3
-import json
+from boto3.dynamodb.conditions import Key
 
-#This code is from github
+# Updated Function, now tested and confirmed works
+
+# Initialize the DynamoDB client
+dynamodb = boto3.resource('dynamodb')
+
+# Define the DynamoDB table name
+TABLE_NAME = 'Inventory'
 
 def lambda_handler(event, context):
-    # Initialize DynamoDB client
-    dynamo_client = boto3.client('dynamodb')
-    table_name = 'Inventory'
+    table = dynamodb.Table(TABLE_NAME)
 
-    # Extract the '_id' from the path parameters
-    if 'pathParameters' not in event or 'id' not in event['pathParameters']:
-        return {
-            'statusCode': 400,
-            'body': json.dumps("Missing 'id' path parameter")
-        }
+    path_params = event.get('pathParameters') or {}
+    item_id = path_params.get('id')
 
-    key_value = event['pathParameters']['id']
-
-    # Prepare the key for DynamoDB
-    key = {
-        '_id': {'S': key_value}
-    }
-
-    # Attempt to delete the item from the table
     try:
-        dynamo_client.delete_item(TableName=table_name, Key=key)
+        # Query to get all items with item_id = :id
+        response = table.query(
+            KeyConditionExpression=Key('item_id').eq(item_id)
+        )
+        items = response.get('Items', [])
+
+        if not items:
+            return {
+                'statusCode': 404,
+                'body': json.dumps('Item not found')
+            }
+
+        # Delete all items with item_id = :id
+        for item in items:
+            table.delete_item(
+                Key={
+                    'item_id': item['item_id'],
+                    'location_id': item['location_id']
+                }
+            )
+        
         return {
             'statusCode': 200,
-            'body': json.dumps(f"Item with ID {key_value} deleted successfully.")
+            'body': json.dumps(f"Item with item_id '{item_id}' deleted successfully.")
         }
+
     except Exception as e:
         print(e)
         return {
