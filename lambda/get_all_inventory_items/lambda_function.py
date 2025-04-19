@@ -1,6 +1,8 @@
 import boto3
 import json
- 
+
+#This code is from github
+
 def lambda_handler(event, context):
     # Initialize a DynamoDB client
     dynamo_client = boto3.client('dynamodb')

@@ -3,6 +3,8 @@ import requests
 import boto3
 import uuid
 
+#This code is from github
+
 def lambda_handler(event, context):
     # Parse incoming JSON data
     try:
