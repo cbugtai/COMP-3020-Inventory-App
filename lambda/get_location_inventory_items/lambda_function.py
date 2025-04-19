@@ -3,6 +3,8 @@ import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
+#This code is from github
+
 # Initialize the DynamoDB client
 dynamodb = boto3.resource('dynamodb')
 
