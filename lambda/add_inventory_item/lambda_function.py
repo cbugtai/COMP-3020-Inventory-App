@@ -1,9 +1,9 @@
 import json
-import requests
 import boto3
 import uuid
+from decimal import Decimal
 
-#This code is from github
+#Updated Function, now tested and confirmed works
 
 def lambda_handler(event, context):
     # Parse incoming JSON data
@@ -26,12 +26,12 @@ def lambda_handler(event, context):
     try:
         table.put_item(
             Item={
-                '_id': unique_id,  
-                'item_name': body['item_name'],
-                'item_description': body['item_description'],
-                'item_qty': int(body['item_qty']),
-                'item_price': float(body['item_price']),
-                'location_id': int(body['location_id'])
+                'item_id': unique_id,
+                'item_name': data['item_name'],
+                'item_description': data['item_description'],
+                'qty_on_hand': int(data['qty_on_hand']),
+                'item_price': Decimal(data['item_price']),
+                'location_id': int(data['location_id'])
             }
         )
         return {
